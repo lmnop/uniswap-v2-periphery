@@ -23,8 +23,9 @@ describe('UniswapV2Router02', () => {
     mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
     gasLimit: 9999999
   })
-  const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  const wallets = provider.getWallets()
+  const wallet = wallets[0]
+  const loadFixture = createFixtureLoader(provider, wallets)
 
   let token0: Contract
   let token1: Contract
@@ -127,8 +128,9 @@ describe('fee-on-transfer tokens', () => {
     mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
     gasLimit: 9999999
   })
-  const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  const wallets = provider.getWallets()
+  const wallet = wallets[0]
+  const loadFixture = createFixtureLoader(provider, wallets)
 
   let DTT: Contract
   let WETH: Contract
@@ -314,8 +316,9 @@ describe('fee-on-transfer tokens: reloaded', () => {
     mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
     gasLimit: 9999999
   })
-  const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  const wallets = provider.getWallets()
+  const wallet = wallets[0]
+  const loadFixture = createFixtureLoader(provider, wallets)
 
   let DTT: Contract
   let DTT2: Contract

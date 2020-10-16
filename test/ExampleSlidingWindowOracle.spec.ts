@@ -23,8 +23,9 @@ describe('ExampleSlidingWindowOracle', () => {
     mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
     gasLimit: 9999999
   })
-  const [wallet] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet])
+  const wallets = provider.getWallets()
+  const wallet = wallets[0]
+  const loadFixture = createFixtureLoader(provider, wallets)
 
   let token0: Contract
   let token1: Contract

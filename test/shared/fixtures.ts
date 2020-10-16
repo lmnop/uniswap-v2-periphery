@@ -37,7 +37,10 @@ interface V2Fixture {
   WETHPair: Contract
 }
 
-export async function v2Fixture(provider: Web3Provider, [wallet]: Wallet[]): Promise<V2Fixture> {
+export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Promise<V2Fixture> {
+  // get primary wallet
+  const wallet = wallets[0]
+
   // deploy tokens
   const tokenA = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const tokenB = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
