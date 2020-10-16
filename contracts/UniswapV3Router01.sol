@@ -3,13 +3,13 @@ pragma solidity =0.6.6;
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 
-import './interfaces/IUniswapV2Router02.sol';
+import './interfaces/IUniswapV3Router01.sol';
 import './libraries/UniswapV2Library.sol';
 import './libraries/SafeMath.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
-contract UniswapV3Router01 is IUniswapV2Router02 {
+contract UniswapV3Router01 is IUniswapV3Router01 {
     using SafeMath for uint;
 
     address public immutable override factory;
@@ -46,14 +46,14 @@ contract UniswapV3Router01 is IUniswapV2Router02 {
     // **** UPDATE WHITELIST ****
     function enableWhitelist(
         address[] calldata addresses
-    ) external onlyOwner {
+    ) external override onlyOwner {
         for (uint i = 0; i < addresses.length; i++) {
             whitelist[addresses[i]] = true;
         }
     }
     function disableWhitelist(
         address[] calldata addresses
-    ) external onlyOwner {
+    ) external override onlyOwner {
         for (uint i = 0; i < addresses.length; i++) {
             whitelist[addresses[i]] = false;
         }
