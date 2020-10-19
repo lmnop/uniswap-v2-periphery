@@ -24,8 +24,6 @@ const overrides = {
 interface V2Fixture {
   token0: Contract
   token1: Contract
-  token0SW: Contract
-  token1SW: Contract
   WETH: Contract
   WETHPartner: Contract
   factoryV1: Contract
@@ -37,11 +35,8 @@ interface V2Fixture {
   router: Contract
   migrator: Contract
   WETHExchangeV1: Contract
-  WETHExchangeV1SW: Contract
   pair: Contract
-  pairSW: Contract
   WETHPair: Contract
-  WETHPairSW: Contract
 }
 
 export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Promise<V2Fixture> {
@@ -79,34 +74,23 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   const WETHExchangeV1 = new Contract(WETHExchangeV1Address, JSON.stringify(UniswapV1Exchange.abi), provider).connect(
     wallet
   )
-  const WETHExchangeV1SW = new Contract(WETHExchangeV1Address, JSON.stringify(UniswapV1Exchange.abi), provider).connect(
-    secondaryWallet
-  )
 
   // initialize V2
   await factoryV2.createPair(tokenA.address, tokenB.address)
   const pairAddress = await factoryV2.getPair(tokenA.address, tokenB.address)
   const pair = new Contract(pairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
-  const pairSW = new Contract(pairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(secondaryWallet)
 
   const token0Address = await pair.token0()
   const token0 = tokenA.address === token0Address ? tokenA : tokenB
   const token1 = tokenA.address === token0Address ? tokenB : tokenA
 
-  const token0AddressSW = await pairSW.token0()
-  const token0SW = tokenA.address === token0AddressSW ? tokenA : tokenB
-  const token1SW = tokenA.address === token0AddressSW ? tokenB : tokenA
-
   await factoryV2.createPair(WETH.address, WETHPartner.address)
   const WETHPairAddress = await factoryV2.getPair(WETH.address, WETHPartner.address)
   const WETHPair = new Contract(WETHPairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
-  const WETHPairSW = new Contract(WETHPairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(secondaryWallet)
 
   return {
     token0,
     token1,
-    token0SW,
-    token1SW,
     WETH,
     WETHPartner,
     factoryV1,
@@ -118,10 +102,7 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     routerEventEmitter,
     migrator,
     WETHExchangeV1,
-    WETHExchangeV1SW,
     pair,
-    pairSW,
-    WETHPair,
-    WETHPairSW
+    WETHPair
   }
 }
