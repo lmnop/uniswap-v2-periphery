@@ -55,11 +55,11 @@ describe('UniswapV3Router01', () => {
 
   describe('UniswapV3Router01', () => {
 
-    async function addLiquidity(token0Amount: BigNumber, token1Amount: BigNumber, wallet: Wallet, pairw: Contract) {
+    async function addLiquidity(token0Amount: BigNumber, token1Amount: BigNumber, wallet: Wallet, pairw: Contract, token0w: Contract, token1w: Contract) {
       let tx;
-      tx = await token0.transfer(pairw.address, token0Amount)
+      tx = await token0w.transfer(pairw.address, token0Amount)
       await tx.wait();
-      tx = await token1.transfer(pairw.address, token1Amount)
+      tx = await token1w.transfer(pairw.address, token1Amount)
       await tx.wait();
       tx = await pairw.mint(wallet.address, overrides)
       await tx.wait();
@@ -78,99 +78,102 @@ describe('UniswapV3Router01', () => {
       expect(await router.WETH()).to.eq(WETH.address)
     })
 
-    it('addLiquidity', async () => {
-      const token0Amount = expandTo18Decimals(1)
-      const token1Amount = expandTo18Decimals(4)
+    // it('addLiquidity', async () => {
+    //   const token0Amount = expandTo18Decimals(1)
+    //   const token1Amount = expandTo18Decimals(4)
 
-      const expectedLiquidity = expandTo18Decimals(2)
+    //   const expectedLiquidity = expandTo18Decimals(2)
 
-      await wallets.forEach(async wallet => {
-        const token0w = token0.connect(wallet);
-        const token1w = token1.connect(wallet);
+    //   await wallets.forEach(async wallet => {
+    //     const token0w = token0.connect(wallet);
+    //     const token1w = token1.connect(wallet);
+    //     const routerw = router.connect(wallet);
 
-        let tx;
-        tx = await token0w.approve(router.address, MaxUint256);
-        await tx.wait();
-        tx = await token1w.approve(router.address, MaxUint256);
-        await tx.wait();
+    //     let tx;
+    //     tx = await token0w.approve(router.address, MaxUint256);
+    //     await tx.wait();
+    //     tx = await token1w.approve(router.address, MaxUint256);
+    //     await tx.wait();
 
-        await expect(
-          router.addLiquidity(
-            token0.address,
-            token1.address,
-            token0Amount,
-            token1Amount,
-            0,
-            0,
-            wallet.address,
-            MaxUint256,
-            overrides
-          )
-        )
-          .to.emit(token0, 'Transfer')
-          .withArgs(wallet.address, pair.address, token0Amount)
-          .to.emit(token1, 'Transfer')
-          .withArgs(wallet.address, pair.address, token1Amount)
-          .to.emit(pair, 'Transfer')
-          .withArgs(AddressZero, AddressZero, MINIMUM_LIQUIDITY)
-          .to.emit(pair, 'Transfer')
-          .withArgs(AddressZero, wallet.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
-          .to.emit(pair, 'Sync')
-          .withArgs(token0Amount, token1Amount)
-          .to.emit(pair, 'Mint')
-          .withArgs(router.address, token0Amount, token1Amount)
-  
-        expect(await pair.balanceOf(wallet.address)).to.eq(expectedLiquidity.sub(MINIMUM_LIQUIDITY))
-      })
-    })
-
-    it('addLiquidityETH', async () => {
-      const WETHPartnerAmount = expandTo18Decimals(1)
-      const ETHAmount = expandTo18Decimals(4)
-
-      const expectedLiquidity = expandTo18Decimals(2)
-      const WETHPairToken0 = await WETHPair.token0()
-
-      await wallets.forEach(async wallet => {
-        const WETHPartnerw = WETHPartner.connect(wallet);
-        const routerw = router.connect(wallet);
-          
-        let tx = await WETHPartnerw.approve(
-          router.address,
-          MaxUint256
-        )
-        await tx.wait();
+    //     await expect(
+    //       routerw.addLiquidity(
+    //         token0.address,
+    //         token1.address,
+    //         token0Amount,
+    //         token1Amount,
+    //         0,
+    //         0,
+    //         wallet.address,
+    //         MaxUint256,
+    //         overrides
+    //       )
+    //     )
+    //       .to.emit(token0, 'Transfer')
+    //       .withArgs(wallet.address, pair.address, token0Amount)
+    //       .to.emit(token1, 'Transfer')
+    //       .withArgs(wallet.address, pair.address, token1Amount)
+    //       .to.emit(pair, 'Transfer')
+    //       .withArgs(AddressZero, AddressZero, MINIMUM_LIQUIDITY)
+    //       .to.emit(pair, 'Transfer')
+    //       .withArgs(AddressZero, wallet.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    //       .to.emit(pair, 'Sync')
+    //       .withArgs(token0Amount, token1Amount)
+    //       .to.emit(pair, 'Mint')
+    //       .withArgs(router.address, token0Amount, token1Amount)
         
-        await expect(
-          routerw.addLiquidityETH(
-            WETHPartner.address,
-            WETHPartnerAmount,
-            WETHPartnerAmount,
-            ETHAmount,
-            wallet.address,
-            MaxUint256,
-            { ...overrides, value: ETHAmount }
-          )
-        )
-          .to.emit(WETHPair, 'Transfer')
-          .withArgs(AddressZero, AddressZero, MINIMUM_LIQUIDITY)
-          .to.emit(WETHPair, 'Transfer')
-          .withArgs(AddressZero, wallet.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
-          .to.emit(WETHPair, 'Sync')
-          .withArgs(
-            WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
-            WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount
-          )
-          .to.emit(WETHPair, 'Mint')
-          .withArgs(
-            router.address,
-            WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
-            WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount
-          )
+    //     await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
+    //     expect(await pair.balanceOf(wallet.address)).to.eq(expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    //   })
+    // })
 
-        expect(await WETHPair.balanceOf(wallet.address)).to.eq(expectedLiquidity.sub(MINIMUM_LIQUIDITY))
-      })
-    })
+    // it('addLiquidityETH', async () => {
+    //   const WETHPartnerAmount = expandTo18Decimals(1)
+    //   const ETHAmount = expandTo18Decimals(4)
+
+    //   const expectedLiquidity = expandTo18Decimals(2)
+    //   const WETHPairToken0 = await WETHPair.token0()
+
+    //   await wallets.forEach(async wallet => {
+    //     const WETHPartnerw = WETHPartner.connect(wallet);
+    //     const routerw = router.connect(wallet);
+          
+    //     let tx = await WETHPartnerw.approve(
+    //       router.address,
+    //       MaxUint256
+    //     )
+    //     await tx.wait();
+        
+    //     await expect(
+    //       routerw.addLiquidityETH(
+    //         WETHPartner.address,
+    //         WETHPartnerAmount,
+    //         WETHPartnerAmount,
+    //         ETHAmount,
+    //         wallet.address,
+    //         MaxUint256,
+    //         { ...overrides, value: ETHAmount }
+    //       )
+    //     )
+    //       .to.emit(WETHPair, 'Transfer')
+    //       .withArgs(AddressZero, AddressZero, MINIMUM_LIQUIDITY)
+    //       .to.emit(WETHPair, 'Transfer')
+    //       .withArgs(AddressZero, wallet.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    //       .to.emit(WETHPair, 'Sync')
+    //       .withArgs(
+    //         WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
+    //         WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount
+    //       )
+    //       .to.emit(WETHPair, 'Mint')
+    //       .withArgs(
+    //         router.address,
+    //         WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
+    //         WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount
+    //       )
+
+    //     await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
+    //     expect(await WETHPair.balanceOf(wallet.address)).to.eq(expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    //   })
+    // })
 
     
     it('removeLiquidity', async () => {
@@ -179,12 +182,19 @@ describe('UniswapV3Router01', () => {
       const expectedLiquidity = expandTo18Decimals(2)
 
       await wallets.forEach(async wallet => {
+        const token0w = token0.connect(wallet);
+        const token1w = token1.connect(wallet);
         const pairw = pair.connect(wallet);
         const routerw = router.connect(wallet);
 
-        await addLiquidity(token0Amount, token1Amount, wallet, pairw)
-        let tx = await pairw.approve(router.address, MaxUint256)
+        let tx;
+        tx = await token0w.approve(router.address, MaxUint256);
         await tx.wait();
+        tx = await token1w.approve(router.address, MaxUint256);
+        await tx.wait();
+        tx = await pairw.approve(router.address, MaxUint256)
+        await tx.wait();
+        await addLiquidity(token0Amount, token1Amount, wallet, pairw, token0w, token1w)
         
         await expect(
           routerw.removeLiquidity(
@@ -211,6 +221,7 @@ describe('UniswapV3Router01', () => {
           .to.emit(pair, 'Burn')
           .withArgs(router.address, token0Amount.sub(500), token1Amount.sub(2000), wallet.address)
 
+        await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
         expect(await pair.balanceOf(wallet.address)).to.eq(0)
         const totalSupplyToken0 = await token0.totalSupply()
         const totalSupplyToken1 = await token1.totalSupply()
@@ -232,7 +243,11 @@ describe('UniswapV3Router01', () => {
         const routerw = router.connect(wallet);
 
         let tx;
-        
+        tx = await WETHPartnerw.approve(
+          router.address,
+          MaxUint256
+        )
+        await tx.wait();
         tx = await WETHPartnerw.transfer(WETHPair.address, WETHPartnerAmount)
         await tx.wait()
         tx = await WETHw.deposit({ value: ETHAmount })
@@ -286,73 +301,106 @@ describe('UniswapV3Router01', () => {
       })
     })
 
-    // it('removeLiquidityWithPermit', async () => {
-    //   const token0Amount = expandTo18Decimals(1)
-    //   const token1Amount = expandTo18Decimals(4)
-    //   await addLiquidity(token0Amount, token1Amount, wallet)
+    it('removeLiquidityWithPermit', async () => {
+      const token0Amount = expandTo18Decimals(1)
+      const token1Amount = expandTo18Decimals(4)
+      const expectedLiquidity = expandTo18Decimals(2)
 
-    //   const expectedLiquidity = expandTo18Decimals(2)
+      await wallets.forEach(async wallet => {
+        const token0w = token0.connect(wallet);
+        const token1w = token1.connect(wallet);
+        const pairw = pair.connect(wallet);
+        const routerw = router.connect(wallet);
 
-    //   const nonce = await pair.nonces(wallet.address)
-    //   const digest = await getApprovalDigest(
-    //     pair,
-    //     { owner: wallet.address, spender: router.address, value: expectedLiquidity.sub(MINIMUM_LIQUIDITY) },
-    //     nonce,
-    //     MaxUint256
-    //   )
+        let tx;
+        tx = await token0w.approve(router.address, MaxUint256);
+        await tx.wait();
+        tx = await token1w.approve(router.address, MaxUint256);
+        await tx.wait();
+        tx = await pairw.approve(router.address, MaxUint256)
+        await tx.wait();
+        await addLiquidity(token0Amount, token1Amount, wallet, pairw, token0w, token1w)
 
-    //   const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
+        const nonce = await pair.nonces(wallet.address)
+        const digest = await getApprovalDigest(
+          pair,
+          { owner: wallet.address, spender: router.address, value: expectedLiquidity.sub(MINIMUM_LIQUIDITY) },
+          nonce,
+          MaxUint256
+        )
 
-    //   await router.removeLiquidityWithPermit(
-    //     token0.address,
-    //     token1.address,
-    //     expectedLiquidity.sub(MINIMUM_LIQUIDITY),
-    //     0,
-    //     0,
-    //     wallet.address,
-    //     MaxUint256,
-    //     false,
-    //     v,
-    //     r,
-    //     s,
-    //     overrides
-    //   )
-    // })
+        const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
 
-    // it('removeLiquidityETHWithPermit', async () => {
-    //   const WETHPartnerAmount = expandTo18Decimals(1)
-    //   const ETHAmount = expandTo18Decimals(4)
-    //   await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount)
-    //   await WETH.deposit({ value: ETHAmount })
-    //   await WETH.transfer(WETHPair.address, ETHAmount)
-    //   await WETHPair.mint(wallet.address, overrides)
+        await routerw.removeLiquidityWithPermit(
+          token0.address,
+          token1.address,
+          expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+          0,
+          0,
+          wallet.address,
+          MaxUint256,
+          false,
+          v,
+          r,
+          s,
+          overrides
+        )
+      })
+    })
 
-    //   const expectedLiquidity = expandTo18Decimals(2)
+    it('removeLiquidityETHWithPermit', async () => {
+      const WETHPartnerAmount = expandTo18Decimals(1)
+      const ETHAmount = expandTo18Decimals(4)
+      const expectedLiquidity = expandTo18Decimals(2)
 
-    //   const nonce = await WETHPair.nonces(wallet.address)
-    //   const digest = await getApprovalDigest(
-    //     WETHPair,
-    //     { owner: wallet.address, spender: router.address, value: expectedLiquidity.sub(MINIMUM_LIQUIDITY) },
-    //     nonce,
-    //     MaxUint256
-    //   )
+      await wallets.forEach(async wallet => {
+        const WETHPartnerw = WETHPartner.connect(wallet);
+        const WETHw = WETH.connect(wallet);
+        const WETHPairw = WETHPair.connect(wallet);
+        const routerw = router.connect(wallet);
 
-    //   const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
+        let tx;
+        tx = await WETHPartnerw.approve(
+          router.address,
+          MaxUint256
+        )
+        await tx.wait();
+        // tx = await WETH.approve(router.address, MaxUint256)
+        // await tx.wait();
+        tx = await WETHPartnerw.transfer(WETHPair.address, WETHPartnerAmount)
+        await tx.wait();
+        tx = await WETHw.deposit({ value: ETHAmount })
+        await tx.wait();
+        tx = await WETHw.transfer(WETHPair.address, ETHAmount)
+        await tx.wait();
+        tx = await WETHPairw.mint(wallet.address, overrides)
+        await tx.wait();
 
-    //   await router.removeLiquidityETHWithPermit(
-    //     WETHPartner.address,
-    //     expectedLiquidity.sub(MINIMUM_LIQUIDITY),
-    //     0,
-    //     0,
-    //     wallet.address,
-    //     MaxUint256,
-    //     false,
-    //     v,
-    //     r,
-    //     s,
-    //     overrides
-    //   )
-    // })
+        const nonce = await WETHPair.nonces(wallet.address)
+        const digest = await getApprovalDigest(
+          WETHPair,
+          { owner: wallet.address, spender: router.address, value: expectedLiquidity.sub(MINIMUM_LIQUIDITY) },
+          nonce,
+          MaxUint256
+        )
+
+        const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
+
+        await routerw.removeLiquidityETHWithPermit(
+          WETHPartner.address,
+          expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+          0,
+          0,
+          wallet.address,
+          MaxUint256,
+          false,
+          v,
+          r,
+          s,
+          overrides
+        )
+      })
+    })
 
     // describe('swapExactTokensForTokens', () => {
     //   const token0Amount = expandTo18Decimals(5)
