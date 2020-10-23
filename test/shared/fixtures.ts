@@ -50,7 +50,6 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   const tokenB = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const tokenC = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const WETH = await deployContract(wallet, WETH9)
-  const WETHPartner = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
 
   // deploy V1
   const factoryV1 = await deployContract(wallet, UniswapV1Factory, [])
@@ -71,15 +70,15 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   const migrator = await deployContract(wallet, UniswapV2Migrator, [factoryV1.address, router01.address], overrides)
 
   // initialize V1
-  await factoryV1.createExchange(WETHPartner.address, overrides)
-  const WETHExchangeV1Address = await factoryV1.getExchange(WETHPartner.address)
+  await factoryV1.createExchange(tokenA.address, overrides)
+  const WETHExchangeV1Address = await factoryV1.getExchange(tokenA.address)
   const WETHExchangeV1 = new Contract(WETHExchangeV1Address, JSON.stringify(UniswapV1Exchange.abi), provider).connect(
     wallet
   )
 
   // Create WETH Pair
-  await factoryV2.createPair(WETH.address, WETHPartner.address)
-  const WETHPairAddress = await factoryV2.getPair(WETH.address, WETHPartner.address)
+  await factoryV2.createPair(WETH.address, tokenA.address)
+  const WETHPairAddress = await factoryV2.getPair(WETH.address, tokenA.address)
   const WETHPair = new Contract(WETHPairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
   // Create Token AB Pair
@@ -103,7 +102,7 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     token1,
     token2,
     WETH,
-    WETHPartner,
+    WETHPartner: tokenA,
     factoryV1,
     factoryV2,
     router01,

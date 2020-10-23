@@ -3,30 +3,60 @@ pragma solidity =0.6.6;
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 
-import './interfaces/IUniswapV2Router02.sol';
+import './interfaces/IUniswapV3Router01.sol';
 import './libraries/UniswapV2Library.sol';
 import './libraries/SafeMath.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
-contract UniswapV3Router01 is IUniswapV2Router02 {
+contract UniswapV3Router00 is IUniswapV3Router01 {
     using SafeMath for uint;
 
     address public immutable override factory;
     address public immutable override WETH;
+    mapping (address => bool) public whitelist;
+    address public owner;
 
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'UniswapV2Router: EXPIRED');
         _;
     }
 
+    modifier onlyOwner() {
+        require(owner == msg.sender);
+        _;
+    }
+
+    modifier onlyWhitelist() {
+        require(whitelist[msg.sender] == true);
+        _;
+    }
+
     constructor(address _factory, address _WETH) public {
         factory = _factory;
         WETH = _WETH;
+        owner = msg.sender;
+        whitelist[msg.sender] = true;
     }
 
     receive() external payable {
         assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
+    }
+
+    // **** UPDATE WHITELIST ****
+    function enableWhitelist(
+        address[] calldata addresses
+    ) external override onlyOwner {
+        for (uint i = 0; i < addresses.length; i++) {
+            whitelist[addresses[i]] = true;
+        }
+    }
+    function disableWhitelist(
+        address[] calldata addresses
+    ) external override onlyOwner {
+        for (uint i = 0; i < addresses.length; i++) {
+            whitelist[addresses[i]] = false;
+        }
     }
 
     // **** ADD LIQUIDITY ****
@@ -281,23 +311,6 @@ contract UniswapV3Router01 is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
-        external
-        virtual
-        override
-        payable
-        ensure(deadline)
-        returns (uint[] memory amounts)
-    {
-        require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
-        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
-        require(amounts[0] <= msg.value, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
-        IWETH(WETH).deposit{value: amounts[0]}();
-        assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
-        _swap(amounts, path, to);
-        // refund dust eth, if any
-        if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
-    }
     function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
         external
         virtual
@@ -315,24 +328,22 @@ contract UniswapV3Router01 is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-    function swapETHForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
+    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
         external
         virtual
+        override
+        payable
         ensure(deadline)
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
-        require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
-
-        amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
-        require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
-
+        amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
+        require(amounts[0] <= msg.value, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
         IWETH(WETH).deposit{value: amounts[0]}();
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
-        
-        _swap(amounts, path, address(this));
-        IWETH(WETH).withdraw(amounts[amounts.length - 1]);
-        TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
+        _swap(amounts, path, to);
+        // refund dust eth, if any
+        if (msg.value > amounts[0]) TransferHelper.safeTransferETH(msg.sender, msg.value - amounts[0]);
     }
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
