@@ -39,6 +39,8 @@ interface V2Fixture {
   pairAB: Contract
   pairBC: Contract
   WETHPair: Contract
+  WETHAPair: Contract
+  WETHCPair: Contract
 }
 
 export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Promise<V2Fixture> {
@@ -76,10 +78,15 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     wallet
   )
 
-  // Create WETH Pair
+  // Create WETH Token A Pair
   await factoryV2.createPair(WETH.address, tokenA.address)
-  const WETHPairAddress = await factoryV2.getPair(WETH.address, tokenA.address)
-  const WETHPair = new Contract(WETHPairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
+  const WETHPairAAddress = await factoryV2.getPair(WETH.address, tokenA.address)
+  const WETHAPair = new Contract(WETHPairAAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
+
+  // Create WETH Token C Pair
+  await factoryV2.createPair(WETH.address, tokenB.address)
+  const WETHPairCAddress = await factoryV2.getPair(WETH.address, tokenC.address)
+  const WETHCPair = new Contract(WETHPairCAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
   // Create Token AB Pair
   await factoryV2.createPair(tokenA.address, tokenB.address)
@@ -102,7 +109,7 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     token1,
     token2,
     WETH,
-    WETHPartner: tokenA,
+    WETHPartner: token0,
     factoryV1,
     factoryV2,
     router01,
@@ -114,6 +121,8 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     WETHExchangeV1,
     pairAB,
     pairBC,
-    WETHPair
+    WETHPair: WETHAPair,
+    WETHAPair,
+    WETHCPair
   }
 }

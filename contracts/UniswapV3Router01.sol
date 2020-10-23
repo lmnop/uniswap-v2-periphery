@@ -321,6 +321,7 @@ contract UniswapV3Router01 is IUniswapV2Router02 {
         ensure(deadline)
         returns (uint[] memory amounts)
     {
+        require(path.length >= 4, 'UniswapV2Router: PATH TOO SMALL');
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
 
