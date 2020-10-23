@@ -257,7 +257,7 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) onlyWhitelist returns (uint[] memory amounts) {
+    ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -271,7 +271,7 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) onlyWhitelist returns (uint[] memory amounts) {
+    ) external virtual override ensure(deadline) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -285,7 +285,6 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         override
         payable
         ensure(deadline)
-        onlyWhitelist
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -300,7 +299,6 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         virtual
         override
         ensure(deadline)
-        onlyWhitelist
         returns (uint[] memory amounts)
     {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -318,7 +316,6 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         virtual
         override
         ensure(deadline)
-        onlyWhitelist
         returns (uint[] memory amounts)
     {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -337,7 +334,6 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         override
         payable
         ensure(deadline)
-        onlyWhitelist
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -376,7 +372,7 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) onlyWhitelist {
+    ) external virtual override ensure(deadline) {
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn
         );
@@ -398,7 +394,6 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         override
         payable
         ensure(deadline)
-        onlyWhitelist
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
         uint amountIn = msg.value;
@@ -422,7 +417,6 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         virtual
         override
         ensure(deadline)
-        onlyWhitelist
     {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         TransferHelper.safeTransferFrom(

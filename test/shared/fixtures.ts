@@ -24,6 +24,7 @@ const overrides = {
 interface V2Fixture {
   token0: Contract
   token1: Contract
+  token2: Contract
   WETH: Contract
   WETHPartner: Contract
   factoryV1: Contract
@@ -35,7 +36,8 @@ interface V2Fixture {
   router: Contract
   migrator: Contract
   WETHExchangeV1: Contract
-  pair: Contract
+  pairAB: Contract
+  pairBC: Contract
   WETHPair: Contract
 }
 
@@ -46,6 +48,7 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   // deploy tokens
   const tokenA = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const tokenB = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
+  const tokenC = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const WETH = await deployContract(wallet, WETH9)
   const WETHPartner = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
 
@@ -74,22 +77,31 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     wallet
   )
 
-  // initialize V2
-  await factoryV2.createPair(tokenA.address, tokenB.address)
-  const pairAddress = await factoryV2.getPair(tokenA.address, tokenB.address)
-  const pair = new Contract(pairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
-
-  const token0Address = await pair.token0()
-  const token0 = tokenA.address === token0Address ? tokenA : tokenB
-  const token1 = tokenA.address === token0Address ? tokenB : tokenA
-
+  // Create WETH Pair
   await factoryV2.createPair(WETH.address, WETHPartner.address)
   const WETHPairAddress = await factoryV2.getPair(WETH.address, WETHPartner.address)
   const WETHPair = new Contract(WETHPairAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
+  // Create Token AB Pair
+  await factoryV2.createPair(tokenA.address, tokenB.address)
+  const pairABAddress = await factoryV2.getPair(tokenA.address, tokenB.address)
+  const pairAB = new Contract(pairABAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
+
+  // Create Token BC Pair
+  await factoryV2.createPair(tokenB.address, tokenC.address)
+  const pairBCAddress = await factoryV2.getPair(tokenB.address, tokenC.address)
+  const pairBC = new Contract(pairBCAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
+
+  const token0Address = await pairAB.token0()
+  const token2Address = await pairBC.token1()
+  const token0 = tokenA.address === token0Address ? tokenA : tokenB
+  const token1 = tokenA.address === token0Address ? tokenB : tokenA
+  const token2 = tokenC.address === token2Address ? tokenC : tokenB
+
   return {
     token0,
     token1,
+    token2,
     WETH,
     WETHPartner,
     factoryV1,
@@ -101,7 +113,8 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     routerEventEmitter,
     migrator,
     WETHExchangeV1,
-    pair,
+    pairAB,
+    pairBC,
     WETHPair
   }
 }

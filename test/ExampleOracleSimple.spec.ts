@@ -43,7 +43,7 @@ describe('ExampleOracleSimple', () => {
 
     token0 = fixture.token0
     token1 = fixture.token1
-    pair = fixture.pair
+    pair = fixture.pairAB
     await addLiquidity()
     exampleOracleSimple = await deployContract(
       wallet,

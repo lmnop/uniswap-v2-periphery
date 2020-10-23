@@ -50,7 +50,7 @@ describe('UniswapV2Router{01,02}', () => {
         [RouterVersion.UniswapV2Router01]: fixture.router01,
         [RouterVersion.UniswapV2Router02]: fixture.router02
       }[routerVersion as RouterVersion]
-      pair = fixture.pair
+      pair = fixture.pairAB
       WETHPair = fixture.WETHPair
       routerEventEmitter = fixture.routerEventEmitter
     })

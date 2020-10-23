@@ -34,7 +34,7 @@ describe('ExampleSwapToPrice', () => {
     const fixture = await loadFixture(v2Fixture)
     token0 = fixture.token0
     token1 = fixture.token1
-    pair = fixture.pair
+    pair = fixture.pairAB
     router = fixture.router
     swapToPriceExample = await deployContract(
       wallet,
