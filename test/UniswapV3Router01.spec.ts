@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai'
 import { Wallet, Contract } from 'ethers'
 import { AddressZero, Zero, MaxUint256 } from 'ethers/constants'
-import { BigNumber, bigNumberify } from 'ethers/utils'
+import { BigNumber, bigNumberify, formatEther } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
@@ -12,6 +12,10 @@ chai.use(solidity)
 
 const overrides = {
   gasLimit: 9999999
+}
+
+function expandTo16Decimals(n: number): BigNumber {
+  return bigNumberify(n).mul(bigNumberify(10).pow(16))
 }
 
 describe('UniswapV3Router01', () => {
@@ -25,14 +29,12 @@ describe('UniswapV3Router01', () => {
 
   let token0: Contract
   let token1: Contract
-  let token2: Contract
   let WETH: Contract
   let factory: Contract
   let router: Contract
   let pairAB: Contract
-  let pairBC: Contract
   let WETHAPair: Contract
-  let WETHCPair: Contract
+  let WETHBPair: Contract
   let routerEventEmitter: Contract
 
   
@@ -40,14 +42,12 @@ describe('UniswapV3Router01', () => {
     const fixture = await loadFixture(v2Fixture)
     token0 = fixture.token0
     token1 = fixture.token1
-    token2 = fixture.token2
     WETH = fixture.WETH
     factory = fixture.factoryV2
     router = fixture.router03
     pairAB = fixture.pairAB
-    pairBC = fixture.pairBC
     WETHAPair = fixture.WETHAPair
-    WETHCPair = fixture.WETHCPair
+    WETHBPair = fixture.WETHBPair
     routerEventEmitter = fixture.routerEventEmitter
   })
 
@@ -716,19 +716,26 @@ describe('UniswapV3Router01', () => {
 
     describe('swapETHForETH', () => {
       const token0Amount = expandTo18Decimals(10)
-      const token1Amount = expandTo18Decimals(10)
-      const token2Amount = expandTo18Decimals(10)
-      const ETHAmount = expandTo18Decimals(5)
-      const swapAmount = expandTo18Decimals(1)
-      const expectedOutputAmount = bigNumberify('1662497915624478906')
+      const token1Amount = expandTo18Decimals(20)
+      const token1Amount2 = expandTo16Decimals(20)
+      const ETH0Amount = expandTo18Decimals(5)
+      const ETH1Amount = expandTo18Decimals(10)
+      const ETHTotalAmount = expandTo18Decimals(15)
+
+      const minProfit = 1.01;
+      const amountIn = 100;
+      const minAmountOut = amountIn * minProfit;
+      const swapAmountIn = expandTo16Decimals(amountIn)
+      const swapMinAmountOut = expandTo16Decimals(minAmountOut)
       
 
       beforeEach('mint tokens, seed addresses with tokens and WETH, approve all addresses for token contracts', async () => {
         let tx;
         
-        tx = await WETH.deposit({ value: ETHAmount })
+        tx = await WETH.deposit({ value: ETHTotalAmount })
         await tx.wait()
-        tx = await WETH.transfer(WETHAPair.address, ETHAmount)
+
+        tx = await WETH.transfer(WETHAPair.address, ETH0Amount)
         await tx.wait()
         tx = await token0.transfer(WETHAPair.address, token0Amount)
         await tx.wait()
@@ -738,17 +745,10 @@ describe('UniswapV3Router01', () => {
         tx = await token1.transfer(pairAB.address, token1Amount)
         await tx.wait();
 
-        tx = await token1.transfer(pairBC.address, token1Amount)
+        tx = await token1.transfer(WETHBPair.address, token1Amount)
         await tx.wait();
-        tx = await token2.transfer(pairBC.address, token2Amount)
-        await tx.wait();
-
-        tx = await WETH.deposit({ value: ETHAmount })
+        tx = await WETH.transfer(WETHBPair.address, ETH1Amount)
         await tx.wait()
-        tx = await WETH.transfer(WETHCPair.address, ETHAmount)
-        await tx.wait()
-        tx = await token2.transfer(WETHCPair.address, token2Amount)
-        await tx.wait();
 
         for (let i = 0; i++; i < wallets.length) {
           const wallet = wallets[i]
@@ -762,20 +762,15 @@ describe('UniswapV3Router01', () => {
           const token1w = token1.connect(wallet);
           tx = await token1w.approve(router.address, MaxUint256)
           await tx.wait();
-          const token2w = token2.connect(wallet);
-          tx = await token2w.approve(router.address, MaxUint256)
-          await tx.wait();
-          const WETHCPairw = WETHCPair.connect(wallet);
-          tx = await WETHCPairw.approve(router.address, MaxUint256)
+          const WETHBPairw = WETHBPair.connect(wallet);
+          tx = await WETHBPairw.approve(router.address, MaxUint256)
           await tx.wait();
           
           tx = await WETHAPair.mint(wallet.address, overrides)
           await tx.wait()
           tx = await pairAB.mint(wallet.address, overrides)
           await tx.wait();
-          tx = await pairBC.mint(wallet.address, overrides)
-          await tx.wait();
-          tx = await WETHCPair.mint(wallet.address, overrides)
+          tx = await WETHBPair.mint(wallet.address, overrides)
           await tx.wait();
         }
         
@@ -783,65 +778,61 @@ describe('UniswapV3Router01', () => {
         await tx.wait();
         tx = await pairAB.sync(overrides)
         await tx.wait();
-        tx = await pairBC.sync(overrides)
-        await tx.wait();
-        tx = await WETHCPair.sync(overrides)
+        tx = await WETHBPair.sync(overrides)
         await tx.wait();
       })
 
-      it('test path', async () => {
+      it('succeeds on swap with greater output than input', async () => {
         
         const wallet = wallets[0]
         const routerw = router.connect(wallet);
 
+        let balance = await provider.getBalance(wallet.address);
+        console.log('Starting Balance: ' + formatEther(balance));
+
         let tx = await routerw.swapETHForETH(
-          0,
-          [WETH.address, token0.address, token1.address, token2.address, WETH.address],
+          swapMinAmountOut,
+          [WETH.address, token0.address, token1.address, WETH.address],
           wallet.address,
           MaxUint256,
           {
             ...overrides,
-            value: swapAmount
+            value: swapAmountIn
           }
         )
-        let receipt = await tx.wait();
+        await tx.wait();
+
+        balance = await provider.getBalance(wallet.address);
+        console.log('Ending Balance: ' + formatEther(balance));
       })
 
-      // it('happy path', async () => {
+      it('fails on swap with lesser output than input', async () => {
         
-      //   const wallet = wallets[0]
-      //   const routerw = router.connect(wallet);
+        const wallet = wallets[0]
+        const routerw = router.connect(wallet);
 
-      //   let tx = await routerw.swapETHForETH(0, [WETH.address, token0.address, token1.address, token2.address, WETH.address], wallet.address, MaxUint256, {
-      //     ...overrides,
-      //     value: swapAmount
-      //   })
-      //   let receipt = await tx.wait();
-      //   // console.log('receipt: ', receipt);
-      // })
+        let tx = await token0.transfer(pairAB.address, token0Amount)
+        await tx.wait();
+        tx = await token1.transfer(pairAB.address, token1Amount2)
+        await tx.wait();
+        tx = await pairAB.mint(wallet.address, overrides)
+        await tx.wait();
+        tx = await pairAB.sync(overrides)
+        await tx.wait();
 
-      // it('amounts', async () => {
-      //   for (let i = 0; i++; i < wallets.length) {
-      //     const wallet = wallets[i]
-      //     const routerEventEmitterw = routerEventEmitter.connect(wallet);
-
-      //     await expect(
-      //       routerEventEmitterw.swapExactETHForTokens(
-      //         router.address,
-      //         0,
-      //         [WETH.address, token0.address],
-      //         wallet.address,
-      //         MaxUint256,
-      //         {
-      //           ...overrides,
-      //           value: swapAmount
-      //         }
-      //       )
-      //     )
-      //       .to.emit(routerEventEmitter, 'Amounts')
-      //       .withArgs([swapAmount, expectedOutputAmount])
-      //   }
-      // })
+        await expect(
+          routerw.swapETHForETH(
+            swapMinAmountOut,
+            [WETH.address, token0.address, token1.address, WETH.address],
+            wallet.address,
+            MaxUint256,
+            {
+              ...overrides,
+              value: swapAmountIn
+            }
+          )
+        ).to.be.revertedWith('UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT')
+      })
     })
   })
 })

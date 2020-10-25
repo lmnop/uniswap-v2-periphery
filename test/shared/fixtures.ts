@@ -24,7 +24,6 @@ const overrides = {
 interface V2Fixture {
   token0: Contract
   token1: Contract
-  token2: Contract
   WETH: Contract
   WETHPartner: Contract
   factoryV1: Contract
@@ -37,10 +36,9 @@ interface V2Fixture {
   migrator: Contract
   WETHExchangeV1: Contract
   pairAB: Contract
-  pairBC: Contract
   WETHPair: Contract
   WETHAPair: Contract
-  WETHCPair: Contract
+  WETHBPair: Contract
 }
 
 export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Promise<V2Fixture> {
@@ -84,30 +82,22 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   const WETHAPair = new Contract(WETHPairAAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
   // Create WETH Token C Pair
-  await factoryV2.createPair(WETH.address, tokenC.address)
-  const WETHPairCAddress = await factoryV2.getPair(WETH.address, tokenC.address)
-  const WETHCPair = new Contract(WETHPairCAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
+  await factoryV2.createPair(WETH.address, tokenB.address)
+  const WETHPairBAddress = await factoryV2.getPair(WETH.address, tokenB.address)
+  const WETHBPair = new Contract(WETHPairBAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
   // Create Token AB Pair
   await factoryV2.createPair(tokenA.address, tokenB.address)
   const pairABAddress = await factoryV2.getPair(tokenA.address, tokenB.address)
   const pairAB = new Contract(pairABAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
-  // Create Token BC Pair
-  await factoryV2.createPair(tokenB.address, tokenC.address)
-  const pairBCAddress = await factoryV2.getPair(tokenB.address, tokenC.address)
-  const pairBC = new Contract(pairBCAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
-
   const token0Address = await pairAB.token0()
-  const token1Address = await pairBC.token0()
   const token0 = tokenA.address === token0Address ? tokenA : tokenB
   const token1 = tokenA.address === token0Address ? tokenB : tokenA
-  const token2 = tokenC.address === token1Address ? tokenC : tokenB
 
   return {
     token0,
     token1,
-    token2,
     WETH,
     WETHPartner: token0,
     factoryV1,
@@ -120,9 +110,8 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
     migrator,
     WETHExchangeV1,
     pairAB,
-    pairBC,
     WETHPair: WETHAPair,
     WETHAPair,
-    WETHCPair
+    WETHBPair
   }
 }
