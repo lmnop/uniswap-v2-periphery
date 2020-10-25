@@ -84,7 +84,7 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   const WETHAPair = new Contract(WETHPairAAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
   // Create WETH Token C Pair
-  await factoryV2.createPair(WETH.address, tokenB.address)
+  await factoryV2.createPair(WETH.address, tokenC.address)
   const WETHPairCAddress = await factoryV2.getPair(WETH.address, tokenC.address)
   const WETHCPair = new Contract(WETHPairCAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
@@ -99,10 +99,10 @@ export async function v2Fixture(provider: Web3Provider, wallets: Wallet[]): Prom
   const pairBC = new Contract(pairBCAddress, JSON.stringify(IUniswapV2Pair.abi), provider).connect(wallet)
 
   const token0Address = await pairAB.token0()
-  const token2Address = await pairBC.token1()
+  const token1Address = await pairBC.token0()
   const token0 = tokenA.address === token0Address ? tokenA : tokenB
   const token1 = tokenA.address === token0Address ? tokenB : tokenA
-  const token2 = tokenC.address === token2Address ? tokenC : tokenB
+  const token2 = tokenC.address === token1Address ? tokenC : tokenB
 
   return {
     token0,
