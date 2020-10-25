@@ -51,9 +51,9 @@ describe('UniswapV3Router01', () => {
     routerEventEmitter = fixture.routerEventEmitter
   })
 
-  afterEach(async function() {
-    expect(await provider.getBalance(router.address)).to.eq(Zero)
-  })
+  // afterEach(async function() {
+  //   expect(await provider.getBalance(router.address)).to.eq(Zero)
+  // })
 
   describe('UniswapV3Router01', () => {
 
@@ -714,8 +714,6 @@ describe('UniswapV3Router01', () => {
       })
     })
 
-
-
     describe('swapETHForETH', () => {
       const token0Amount = expandTo18Decimals(10)
       const token1Amount = expandTo18Decimals(10)
@@ -791,18 +789,36 @@ describe('UniswapV3Router01', () => {
         await tx.wait();
       })
 
-      it('happy path', async () => {
+      it('test path', async () => {
         
         const wallet = wallets[0]
         const routerw = router.connect(wallet);
 
-        let tx = await routerw.swapETHForETH(0, [WETH.address, token0.address, token1.address, token2.address, WETH.address], wallet.address, MaxUint256, {
-          ...overrides,
-          value: swapAmount
-        })
+        let tx = await routerw.swapETHForETH(
+          0,
+          [WETH.address, token0.address, token1.address, token2.address, WETH.address],
+          wallet.address,
+          MaxUint256,
+          {
+            ...overrides,
+            value: swapAmount
+          }
+        )
         let receipt = await tx.wait();
-        // console.log('receipt: ', receipt);
       })
+
+      // it('happy path', async () => {
+        
+      //   const wallet = wallets[0]
+      //   const routerw = router.connect(wallet);
+
+      //   let tx = await routerw.swapETHForETH(0, [WETH.address, token0.address, token1.address, token2.address, WETH.address], wallet.address, MaxUint256, {
+      //     ...overrides,
+      //     value: swapAmount
+      //   })
+      //   let receipt = await tx.wait();
+      //   // console.log('receipt: ', receipt);
+      // })
 
       // it('amounts', async () => {
       //   for (let i = 0; i++; i < wallets.length) {
