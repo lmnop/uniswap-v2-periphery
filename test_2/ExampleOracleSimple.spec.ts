@@ -3,8 +3,8 @@ import { Contract } from 'ethers'
 import { BigNumber } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader, deployContract } from 'ethereum-waffle'
 
-import { expandTo18Decimals, mineBlock, encodePrice } from './shared/utilities'
-import { v2Fixture } from './shared/fixtures'
+import { expandTo18Decimals, mineBlock, encodePrice } from '../test/shared/utilities'
+import { v2Fixture } from '../test/shared/fixtures'
 
 import ExampleOracleSimple from '../build/ExampleOracleSimple.json'
 
