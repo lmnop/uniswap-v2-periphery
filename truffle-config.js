@@ -28,10 +28,10 @@ module.exports = {
     rinkeby: {
       provider: () => new HDWalletProvider(privateKey, `https://rinkeby.infura.io/v3/${infuraProjectID}`),
       network_id: 4,
-      gas: 10 ** 6,
+      gas: 5 * (10 ** 6),
       confirmations: 2,
       timeoutBlocks: 20,
-      gasPrice: 20 ** 9,
+      gasPrice: 100 * (10 ** 9),
       skipDryRun: true
     },
     goerli: {
@@ -46,10 +46,10 @@ module.exports = {
     kovan: {
       provider: () => new HDWalletProvider(privateKey, `https://kovan.infura.io/v3/${infuraProjectID}`),
       network_id: 42,
-      gas: 10 ** 7,
+      gas: 5 * (10 ** 6),
       confirmations: 2,
       timeoutBlocks: 20,
-      gasPrice: 20 ** 9,
+      gasPrice: 20 * (10 ** 9),
       skipDryRun: true
     }
   },
@@ -60,7 +60,7 @@ module.exports = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 999999
+          runs: 200
         },
         evmVersion: 'istanbul'
       }
