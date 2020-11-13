@@ -15,9 +15,15 @@
     "contracts"
   ],
   "dependencies": {
+    "@ethersproject/contracts": "^5.0.5",
+    "@ethersproject/providers": "^5.0.14",
+    "@ethersproject/solidity": "^5.0.5",
     "@truffle/hdwallet-provider": "^1.1.1",
+    "@types/big.js": "^6.0.0",
     "@uniswap/lib": "1.1.1",
+    "@uniswap/sdk": "^3.0.3",
     "@uniswap/v2-core": "1.0.0",
+    "big.js": "^6.0.2",
     "dotenv": "^8.2.0",
     "lodash": "^4.17.20",
     "truffle": "^5.1.50"
@@ -32,7 +38,7 @@
     "ncp": "^2.0.0",
     "prettier": "^1.19.1",
     "rimraf": "^3.0.0",
-    "solc": "^0.6.7",
+    "solc": "0.6.7",
     "ts-node": "^8.5.4",
     "typescript": "^3.7.3"
   },
