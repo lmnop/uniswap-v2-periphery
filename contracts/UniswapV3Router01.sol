@@ -12,6 +12,8 @@ import './interfaces/IWETH.sol';
 contract UniswapV3Router01 is IUniswapV3Router01 {
     using SafeMath for uint;
 
+    event Amounts(uint[] array);
+
     address public immutable override factory;
     address public immutable override WETH;
 
@@ -149,6 +151,8 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
 
         amounts = UniswapV2Library.getAmountsOut(factory, msg.value, path);
+        emit Amounts(amounts);
+
         require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
 
         IWETH(WETH).deposit{value: amounts[0]}();

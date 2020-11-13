@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai'
 import { Wallet, Contract } from 'ethers'
 import { AddressZero, Zero, MaxUint256 } from 'ethers/constants'
-import { BigNumber, bigNumberify, formatEther } from 'ethers/utils'
+import { BigNumber, bigNumberify, formatEther, defaultAbiCoder } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
@@ -854,7 +854,7 @@ describe('UniswapV3Router01', () => {
 
         const outputAmount = expandTo18Decimals(20)
 
-        let tx1 = routerw1.swapTokensForExactTokens(
+        let tx1 = await routerw1.swapTokensForExactTokens(
           outputAmount,
           MaxUint256,
           [token1.address, token0.address],
@@ -865,7 +865,7 @@ describe('UniswapV3Router01', () => {
           }
         )
 
-        let tx2 = routerw2.swapETHForETH(
+        let tx2 = await routerw2.swapETHForETH(
           swapMinAmountOut,
           [WETH.address, token0.address, token1.address, WETH.address],
           wallets[1].address,
@@ -876,8 +876,23 @@ describe('UniswapV3Router01', () => {
           }
         )
 
-        await (await tx1).wait();
-        await (await tx2).wait();
+        await tx1.wait();
+
+        let amountsEvents = (await tx2.wait()).events.filter(function (event: any) {
+          return event.event == 'Amounts';
+        });
+
+        let amounts = defaultAbiCoder.decode(
+          [ 'uint256[]' ],
+          amountsEvents[0].data
+        )[0];
+
+        for (const index in amounts) {
+          console.log(amounts[index].toString())
+        }
+
+        
+        // await tx2.wait();
 
         // balance = await provider.getBalance(wallets[1].address);
         // console.log('Ending Balance: ' + formatEther(balance));
