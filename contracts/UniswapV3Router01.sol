@@ -13,6 +13,7 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
     using SafeMath for uint;
 
     event Amounts(uint[] array);
+    event Reserves(uint[] array);
 
     address public immutable override factory;
     address public immutable override WETH;
@@ -144,12 +145,14 @@ contract UniswapV3Router01 is IUniswapV3Router01 {
         virtual
         payable
         ensure(deadline)
-        returns (uint[] memory amounts)
+        returns (uint[] memory amounts, uint[] memory reserves)
     {
         require(path.length >= 4, 'UniswapV2Router: PATH TOO SMALL');
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
 
+        reserves = UniswapV2Library.getPathReserves(factory, path);
+        emit Reserves(reserves);
         amounts = UniswapV2Library.getAmountsOut(factory, msg.value, path);
         emit Amounts(amounts);
 

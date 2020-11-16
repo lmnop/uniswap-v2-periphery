@@ -878,7 +878,22 @@ describe('UniswapV3Router01', () => {
 
         await tx1.wait();
 
-        let amountsEvents = (await tx2.wait()).events.filter(function (event: any) {
+        let allEvents = (await tx2.wait()).events;
+
+        let reservesEvents = allEvents.filter(function (event: any) {
+          return event.event == 'Reserves';
+        });
+
+        let reserves = defaultAbiCoder.decode(
+          [ 'uint256[]' ],
+          reservesEvents[0].data
+        )[0];
+
+        for (const index in reserves) {
+          console.log(reserves[index].toString())
+        }
+
+        let amountsEvents = allEvents.filter(function (event: any) {
           return event.event == 'Amounts';
         });
 
@@ -890,12 +905,6 @@ describe('UniswapV3Router01', () => {
         for (const index in amounts) {
           console.log(amounts[index].toString())
         }
-
-        
-        // await tx2.wait();
-
-        // balance = await provider.getBalance(wallets[1].address);
-        // console.log('Ending Balance: ' + formatEther(balance));
       })
 
       it('fails when a swap has been that does not cause enough slippage', async () => {

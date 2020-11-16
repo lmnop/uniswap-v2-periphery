@@ -79,4 +79,15 @@ library UniswapV2Library {
             amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
         }
     }
+
+    // performs chained getReserves calculations on any number of pairs
+    function getPathReserves(address factory, address[] memory path) internal view returns (uint[] memory reserves) {
+        require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
+        reserves = new uint[]((path.length - 1) * 2);
+        for (uint i; i < path.length - 1; i++) {
+            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
+            reserves[i * 2] = reserveIn;
+            reserves[(i * 2) + 1] = reserveOut;
+        }
+    }
 }
